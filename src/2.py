@@ -11,10 +11,14 @@ class Window(QtGui.QMainWindow):
         self.set_window()
 
         self.buttons()
-
+        self.progress_bar()
         self.set_main_menu()
         self.set_toolbar()
         self.show()
+
+    def progress_bar(self):
+        self.progress_dwnld = QtGui.QProgressBar(self)
+        self.progress_dwnld.setGeometry(200, 80, 250, 20)
 
     def buttons(self):
         btn = QtGui.QPushButton('Quit', self)
@@ -27,8 +31,11 @@ class Window(QtGui.QMainWindow):
 
         self.check_box = QtGui.QCheckBox('Enlarge Window', self)
         self.check_box.stateChanged.connect(self.enlarge_window)
-        self.check_box.move(0,50)
-        self.check_box.
+        self.check_box.move(0, 50)
+
+        self.btn_downld = QtGui.QPushButton('Download', self)
+        self.btn_downld.move(200, 120)
+        self.btn_downld.clicked.connect(self.download)
 
     def enlarge_window(self, state):
         if state == QtCore.Qt.Checked:
@@ -60,6 +67,13 @@ class Window(QtGui.QMainWindow):
 
         self.toolbar = self.addToolBar("Extraction")
         self.toolbar.addAction(tlbr_exit)
+
+    def download(self):
+        self.completed = 0
+
+        while self.completed < 100:
+            self.completed += 0.00001
+            self.progress_dwnld.setValue(self.completed)
 
     def close_app(self):
         choice = QtGui.QMessageBox.question(self, 'Exit', 'Exit?', QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
