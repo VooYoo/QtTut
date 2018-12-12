@@ -3,7 +3,7 @@ from PyQt4 import QtGui, QtCore
 
 
 class Window(QtGui.QMainWindow):
-    icon_path = r'C:\PythonWorkspace\QtTut\img\Geralt.jpg'
+    icon_path = r'../img/Geralt.jpg'
 
     def __init__(self):
         super(Window, self).__init__()
@@ -14,27 +14,57 @@ class Window(QtGui.QMainWindow):
         self.progress_bar()
         self.set_main_menu()
         self.set_toolbar()
+
+        self.styles()
+        self.layout()
+
+
         self.show()
+
+    def layout(self):
+        self.setGeometry(50, 50, 300, 220)
+
+        self.comboBox.move(20, 125)
+        self.styleChoice.move(20, 100)
+        self.progress_dwnld.setGeometry(20, 160, 250, 20)
+        self.btn_quit.setGeometry(150, 75, 75, 75)
+        self.check_box.move(20, 75)
+        self.btn_downld.move(20, 180)
+
+    def styles(self):
+        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create("Plastique"))
+        # todo
+        print(self.style().objectName())
+        self.styleChoice = QtGui.QLabel("costam", self)
+        print(QtGui.QStyleFactory.keys())
+        self.comboBox = QtGui.QComboBox(self)
+        self.comboBox.addItem("motif")
+        self.comboBox.addItem("Windows")
+        self.comboBox.addItem("cde")
+        self.comboBox.addItem("Plastique")
+        self.comboBox.addItem("Cleanlooks")
+        self.comboBox.addItem("windowsvista")
+        self.comboBox.addItem('WindowsXP')
+        self.comboBox.activated[str].connect(self.style_choice)
+
+    def style_choice(self, text):
+        self.styleChoice.setText(text)
+        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(text))
 
     def progress_bar(self):
         self.progress_dwnld = QtGui.QProgressBar(self)
-        self.progress_dwnld.setGeometry(200, 80, 250, 20)
 
     def buttons(self):
-        btn = QtGui.QPushButton('Quit', self)
-        btn.clicked.connect(self.close_app)
-        # print(btn.sizeHint())
-        # print(btn.minimumSizeHint())
-        # print(btn.size())
-        btn.resize(100, 100)
-        btn.move(100, 100)
+        self.btn_quit = QtGui.QPushButton('Quit', self)
+        self.btn_quit.clicked.connect(self.close_app)
+        # print(self.btn_quit.sizeHint())
+        # print(self.btn_quit.minimumSizeHint())
+        # print(self.btn_quit.size())
 
         self.check_box = QtGui.QCheckBox('Enlarge Window', self)
         self.check_box.stateChanged.connect(self.enlarge_window)
-        self.check_box.move(0, 50)
 
         self.btn_downld = QtGui.QPushButton('Download', self)
-        self.btn_downld.move(200, 120)
         self.btn_downld.clicked.connect(self.download)
 
     def enlarge_window(self, state):
@@ -44,7 +74,6 @@ class Window(QtGui.QMainWindow):
             self.setGeometry(50, 50, 500, 300)
 
     def set_window(self):
-        self.setGeometry(50, 50, 500, 300)
         self.setWindowTitle('VooYoo')
         self.setWindowIcon(QtGui.QIcon(self.icon_path))
 
@@ -58,8 +87,57 @@ class Window(QtGui.QMainWindow):
         self.statusBar()
 
         main_menu = self.menuBar()
+
+
+        openEditor = QtGui.QAction("Editor", self)
+        openEditor.setShortcut("Ctrl+E")
+        openEditor.setStatusTip('Open Editor')
+        openEditor.triggered.connect(self.editor)
+
+        editorMenu = main_menu.addMenu("Editor")
+        editorMenu.addAction(openEditor)
+
+        openFile = QtGui.QAction("openFile", self)
+        openFile.setShortcut("Ctrl+O")
+        openFile.setStatusTip('openFile')
+        openFile.triggered.connect(self.file_open)
+
+        saveFile = QtGui.QAction("saveFile", self)
+        saveFile.setShortcut("Ctrl+S")
+        saveFile.setStatusTip('saveFile')
+        saveFile.triggered.connect(self.file_save)
+
+
         file_menu = main_menu.addMenu('File')
         file_menu.addAction(menu_exit)
+        file_menu.addAction(openFile)
+        file_menu.addAction(saveFile)
+
+    def file_open(self):
+        name = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
+        if not name:
+            return
+        file = open(name, 'r')
+
+        self.editor()
+
+        with file:
+            text = file.read()
+            self.textEdit.setText(text)
+
+    def file_save(self):
+        name = QtGui.QFileDialog.getSaveFileName(self, 'Save file')
+        if not name:
+            return
+        file = open(name, 'w')
+        text = self.textEdit.toPlainText()
+
+        file.write(text)
+        file.close()
+
+    def editor(self):
+        self.textEdit = QtGui.QTextEdit()
+        self.setCentralWidget(self.textEdit)
 
     def set_toolbar(self):
         tlbr_exit = QtGui.QAction(QtGui.QIcon(self.icon_path), 'Exit', self)
@@ -67,6 +145,32 @@ class Window(QtGui.QMainWindow):
 
         self.toolbar = self.addToolBar("Extraction")
         self.toolbar.addAction(tlbr_exit)
+
+        fontChoice = QtGui.QAction('Font', self)
+        fontChoice.triggered.connect(self.font_choice)
+
+        # self.toolbar = self.addToolBar("Font")
+        self.toolbar.addAction(fontChoice)
+
+        color = QtGui.QColor(0, 0, 0)
+
+        fontColor = QtGui.QAction('Font bg Color', self)
+        fontColor.triggered.connect(self.color_picker)
+
+        self.toolbar.addAction(fontColor)
+
+        cal = QtGui.QCalendarWidget(self)
+        cal.setGeometry(500, 200, 200, 200)
+
+    def color_picker(self):
+        color = QtGui.QColorDialog.getColor()
+        self.styleChoice.setStyleSheet("QWidget { background-color: %s}" % color.name())
+
+    def font_choice(self):
+        font, valid = QtGui.QFontDialog.getFont()
+        if valid:
+            self.styleChoice.setFont(font)
+            QtGui.QApplication.setFont(font)
 
     def download(self):
         self.completed = 0
